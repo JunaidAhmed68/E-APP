@@ -48,7 +48,7 @@ const Checkout = () => {
   console.log("📦 Order sending:", order);
 
   try {
-    const res = await axios.post("http://localhost:3000/orders", order);
+    const res = await axios.post("https://e-app-delta.vercel.app/orders", order);
 
     if (res.status === 201) {
       if (!buyNowItem) clearCart();

@@ -36,7 +36,7 @@ const Home = () => {
 useEffect(() => {
   const fetchFeatured = async () => {
     try {
-      const res = await axios.get("http://localhost:3000/products?featured=true");
+      const res = await axios.get("https://e-app-delta.vercel.app/products?featured=true");
       setFeatured(res.data.products || []);
     } catch (err) {
       console.error("Error fetching featured products:", err);
@@ -50,7 +50,7 @@ useEffect(() => {
 useEffect(() => {
   const fetchCategories = async () => {
     try {
-      const res = await axios.get("http://localhost:3000/products/categories");
+      const res = await axios.get("https://e-app-delta.vercel.app/products/categories");
       setCategories(res.data || []);
     } catch (err) {
       console.error("Failed to fetch categories:", err);

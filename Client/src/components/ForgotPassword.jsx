@@ -10,7 +10,7 @@ const ForgotPassword = () => {
     e.preventDefault();
     try {
       const res = await axios.post(
-        "http://localhost:3000/auth/forgot-password",
+        "https://e-app-delta.vercel.app/auth/forgot-password",
         { email }
       );
       toast.success(res.data.message);

@@ -23,7 +23,7 @@ function Products() {
 
   async function justFetchOneTime() {
     try {
-      const res = await axios.get("http://localhost:3000/products");
+      const res = await axios.get("https://e-app-delta.vercel.app/products");
       setSavedProducts(res.data.products);
       setProducts(res.data.products);
       console.log("Fetched all products:", res.data.products);
@@ -34,7 +34,7 @@ function Products() {
 
   async function fetchAllCategories() {
     try {
-      const res = await axios.get("http://localhost:3000/products/categories");
+      const res = await axios.get("https://e-app-delta.vercel.app/products/categories");
       setCategories(["All", ...res.data]);
       console.log("Fetched categories:", res.data);
     } catch (error) {
@@ -44,7 +44,7 @@ function Products() {
 
   async function fetchProductsByCategory(category) {
     try {
-      const res = await axios.get(`http://localhost:3000/products/category/${category}`);
+      const res = await axios.get(`https://e-app-delta.vercel.app/products/category/${category}`);
       setProducts(res.data.products);
       console.log(`Fetched products for category "${category}"`, res.data.products);
     } catch (error) {

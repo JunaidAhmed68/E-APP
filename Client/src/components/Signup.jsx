@@ -43,11 +43,11 @@ export default function Signup() {
 
   const onSubmit = async (data) => {
     try {
-      const res = await axios.post("http://localhost:3000/auth/signup", data);
+      const res = await axios.post("https://e-app-delta.vercel.app/auth/signup", data);
       toast.success("User registered successfully");
 
       setRegisteredEmail(data.email);
-      await axios.post("http://localhost:3000/confirmemail/send", {
+      await axios.post("https://e-app-delta.vercel.app/confirmemail/send", {
         email: data.email,
       });
 

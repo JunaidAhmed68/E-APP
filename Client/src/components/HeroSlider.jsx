@@ -18,7 +18,7 @@ const HeroSlider = () => {
   useEffect(() => {
     const fetchSlides = async () => {
       try {
-        const res = await axios.get("http://localhost:3000/products?featured=true");
+        const res = await axios.get("https://e-app-delta.vercel.app/products?featured=true");
         setSlides(res.data.products || []);
       } catch (err) {
         console.error("Slider fetch failed:", err);

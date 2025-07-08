@@ -14,7 +14,7 @@ const Orders = () => {
     } else if (user?._id) {
       const fetchOrders = async () => {
         try {
-          const res = await axios.get(`http://localhost:3000/orders/${user._id}`);
+          const res = await axios.get(`https://e-app-delta.vercel.app/orders/${user._id}`);
           setOrders(res.data.orders || []);
         } catch (err) {
           console.error("Failed to fetch orders", err);

@@ -34,7 +34,7 @@ function EmailConfirmationModal({ email, onVerified }) {
 
   const verifyCode = async () => {
     try {
-      const res = await axios.post("http://localhost:3000/confirmemail/verify", {
+      const res = await axios.post("https://e-app-delta.vercel.app/confirmemail/verify", {
         email,
         code,
       });
@@ -49,7 +49,7 @@ function EmailConfirmationModal({ email, onVerified }) {
 
   const resendCode = async () => {
     try {
-      await axios.post("http://localhost:3000/confirmemail/send", { email });
+      await axios.post("https://e-app-delta.vercel.app/confirmemail/send", { email });
       toast.success("Verification code resent!");
       setTimeLeft(300);
       setCanResend(false);

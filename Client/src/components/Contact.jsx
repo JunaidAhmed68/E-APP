@@ -35,7 +35,7 @@ const Contact = () => {
     };
 
     try {
-      const res = await axios.post("http://localhost:3000/contact", payload);
+      const res = await axios.post("https://e-app-delta.vercel.app/contact", payload);
       toast.success("Message sent successfully!");
       setFormData({ message: "" });
     } catch (err) {

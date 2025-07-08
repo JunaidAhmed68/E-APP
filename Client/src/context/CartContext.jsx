@@ -15,7 +15,7 @@ export const CartProvider = ({ children, user }) => {
   useEffect(() => {
     if (user?._id) {
       axios
-        .get(`http://localhost:3000/cart/${user._id}`)
+        .get(`https://e-app-delta.vercel.app/cart/${user._id}`)
         .then((res) => setCartItems(res.data.cart || []))
         .catch((err) => console.error("Error loading cart:", err));
     }
@@ -25,7 +25,7 @@ export const CartProvider = ({ children, user }) => {
   useEffect(() => {
     if (user?._id) {
       axios
-        .put(`http://localhost:3000/cart/${user._id}`, {
+        .put(`https://e-app-delta.vercel.app/cart/${user._id}`, {
           cart: cartItems,
         })
         .catch((err) => console.error("Error saving cart:", err));

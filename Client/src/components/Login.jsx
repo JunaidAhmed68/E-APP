@@ -42,7 +42,7 @@ export default function Login() {
   const submitButton = async (formData) => {
     try {
       const response = await axios.post(
-        "http://localhost:3000/auth/login",
+        "https://e-app-delta.vercel.app/auth/login",
         formData
       );
       
@@ -51,7 +51,7 @@ export default function Login() {
       console.log("Login response:", user.isEmailVerified, token);
       
       if (!token || !user.isEmailVerified) {
-        await axios.post("http://localhost:3000/confirmemail/send", {
+        await axios.post("https://e-app-delta.vercel.app/confirmemail/send", {
           email: formData.email,
         });
         setPendingEmail(formData.email);
@@ -67,7 +67,7 @@ export default function Login() {
     } catch (error) {
       if (error.response?.status === 403) {
         toast.info("Please verify your email first. We've resent the code.");
-        await axios.post("http://localhost:3000/confirmemail/send", {
+        await axios.post("https://e-app-delta.vercel.app/confirmemail/send", {
           email: formData.email,
         });
         setPendingEmail(formData.email);

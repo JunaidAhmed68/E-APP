@@ -99,7 +99,7 @@ const SellOnApp = () => {
       return toast.warning("Please upload product images.");
 
     try {
-      const res = await axios.post("http://localhost:3000/products", {
+      const res = await axios.post("https://e-app-delta.vercel.app/products", {
         ...formData,
         sellerId: user._id,
       });

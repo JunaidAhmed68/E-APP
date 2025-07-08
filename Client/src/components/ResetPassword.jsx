@@ -12,7 +12,7 @@ const ResetPassword = () => {
   const handleReset = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post(`http://localhost:3000/auth/reset-password/${token}`, {
+      const res = await axios.post(`https://e-app-delta.vercel.app/auth/reset-password/${token}`, {
         password,
       });
       toast.success(res.data.message);

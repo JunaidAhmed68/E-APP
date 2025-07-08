@@ -23,7 +23,7 @@ function ProductDetail() {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await axios.get(`http://localhost:3000/products/${id}`);
+        const res = await axios.get(`https://e-app-delta.vercel.app/products/${id}`);
         setProduct(res.data.product);
       } catch (error) {
         console.error("Error fetching product:", error);
