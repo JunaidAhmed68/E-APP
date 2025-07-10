@@ -24,7 +24,6 @@ router.post("/", async (req, res) => {
       })),
       total,
       address,
-
     });
 
     await order.save();
