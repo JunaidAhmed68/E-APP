@@ -14,6 +14,8 @@ const Checkout = () => {
   useEffect(() => {
     if (!user) navigate("/login");
   }, [user, navigate]);
+  console.log("✅ Buy Now Item:", buyNowItem);
+  console.log("🛒 Cart Items:", cartItems);
 
   const itemsToCheckout = buyNowItem ? [buyNowItem] : cartItems;
 
@@ -22,47 +24,51 @@ const Checkout = () => {
     0
   );
 
- const handlePlaceOrder = async () => {
-  if (!address.trim()) return alert("Please enter your address");
+  const handlePlaceOrder = async () => {
+    if (!address.trim()) return alert("Please enter your address");
 
-  const itemsToCheckout = (buyNowItem ? [buyNowItem] : cartItems).map((item) => ({
-    _id: item._id,
-    title: item.title,
-    price: item.price,
-    quantity: item.quantity || 1,
-    thumbnail: item.thumbnail,
-  }));
+     itemsToCheckout.map(
+      (item) => ({
+        _id: item._id,
+        title: item.title,
+        price: item.price,
+        quantity: item.quantity || 1,
+        thumbnail: item.thumbnail,
+        sellerId: item.sellerId,
+      })
+    );
 
-  const total = itemsToCheckout.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
+    const total = itemsToCheckout.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
 
-  const order = {
-    userId: user._id,
-    items: itemsToCheckout,
-    total,
-    address,
-  };
+    const order = {
+      userId: user._id,
+      items: itemsToCheckout,
+      total,
+      address,
+    };
 
-  console.log("📦 Order sending:", order);
+    console.log("📦 Order sending:", order);
 
-  try {
-    const res = await axios.post("https://e-app-delta.vercel.app/orders", order);
+    try {
+      const res = await axios.post(
+        "https://e-app-delta.vercel.app/orders",
+        order
+      );
 
-    if (res.status === 201) {
-      if (!buyNowItem) clearCart();
-      navigate("/orders");
-    } else {
-      alert("Something went wrong while placing order.");
+      if (res.status === 201) {
+        if (!buyNowItem) clearCart();
+        navigate("/orders");
+      } else {
+        alert("Something went wrong while placing order.");
+      }
+    } catch (error) {
+      console.error("Order submission error:", error);
+      alert(error.response?.data?.message || "Server error");
     }
-  } catch (error) {
-    console.error("Order submission error:", error);
-    alert(error.response?.data?.message || "Server error");
-  }
-};
-
-
+  };
 
   return (
     <div className="max-w-2xl mx-auto p-6">
@@ -79,6 +85,12 @@ const Checkout = () => {
         />
       </div>
 
+      <div>
+        <h4 className="text-xl font-semibold mb-1">Payment Method</h4>
+        <p className="text-gray-600 mb-2">
+          Currently, only cash on delivery is supported.
+        </p>
+      </div>
       <div className="mb-4">
         <h4 className="text-xl font-semibold mb-2">Order Summary</h4>
         <ul>

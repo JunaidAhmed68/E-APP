@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
+import Loader from "./Loader";
 
 const MyCart = () => {
   const { user, loading } = useContext(AuthContext);
@@ -10,13 +11,15 @@ const MyCart = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!user) {
+    if (!user && !loading) {
       navigate("/login");
     }
   }, [user, loading, navigate]);
+  if (loading) return <div className="h-screen flex justify-center items-center"> <Loader/> </div>;
 
-  if (loading) return <div className="p-4">Loading user...</div>;
 
+
+                                                                                                              
   const totalPrice = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0

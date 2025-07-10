@@ -10,28 +10,32 @@ const AuthContextProvider = ({ children }) => {
 
   const token = Cookies.get("token");
 
- useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        if (token) {
-          const response = await axios.get("https://e-app-delta.vercel.app/auth/user", {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-          setLoading(false);
-          setUser(response.data.data);
-          console.log("User data fetched:", response.data);
-        }
-      } catch (err) {
-        console.error("Error fetching user data:", err);
-        Cookies.remove("token"); 
-        setUser(null); 
+useEffect(() => {
+  const fetchUser = async () => {
+    try {
+      if (token) {
+        const response = await axios.get("https://e-app-delta.vercel.app/auth/user", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setUser(response.data.data);
+        console.log("User data fetched:", response.data);
+      } else {
+        setUser(null); // token not present
       }
-    };
+    } catch (err) {
+      console.error("Error fetching user data:", err);
+      Cookies.remove("token");
+      setUser(null);
+    } finally {
+      setLoading(false); // ✅ Move this here
+    }
+  };
 
-    fetchUser();
-  }, []);
+  fetchUser();
+}, []);
+
   
 
 

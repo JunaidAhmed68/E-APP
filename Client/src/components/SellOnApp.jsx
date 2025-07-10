@@ -8,6 +8,7 @@ import { toast } from "react-toastify";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import Loader from "./Loader";
 
 const initialState = {
   title: "",
@@ -35,7 +36,7 @@ const SellOnApp = () => {
     }
   }, [user, loading, navigate]);
 
-  if (loading) return <div className="p-4">Loading user...</div>;
+  if (loading) return <div className="h-screen flex justify-center items-center"> <Loader/> </div>;
 
   const handleChange = (e) => {
     const { name, value } = e.target;

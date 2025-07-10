@@ -15,7 +15,7 @@ import axios from "axios"; // ✅ Add this
 const Home = () => {
   const [categories, setCategories] = useState([]);
   const [showAllCategories, setShowAllCategories] = useState(false);
-  const { setCategorySelected } = useContext(ProductContext);
+  const { setCategorySelected, changeCategory } = useContext(ProductContext);
   const [featured, setFeatured] = useState([]);
   const { addToCart } = useCart();
   const { user } = useContext(AuthContext);
@@ -29,36 +29,44 @@ const Home = () => {
 
   const handleBuyNow = (product) => {
     if (!user) return navigate("/login");
+
     navigate("/checkout", {
-      state: { buyNowProduct: { ...product, quantity: 1 } },
+      state: {
+        buyNowItem: {
+          ...product,
+          quantity: 1,
+        },
+      },
     });
   };
-useEffect(() => {
-  const fetchFeatured = async () => {
-    try {
-      const res = await axios.get("https://e-app-delta.vercel.app/products?featured=true");
-      setFeatured(res.data.products || []);
-    } catch (err) {
-      console.error("Error fetching featured products:", err);
-    }
-  };
-  fetchFeatured();
-}, []);
 
+  useEffect(() => {
+    const fetchFeatured = async () => {
+      try {
+        const res = await axios.get(
+          "https://e-app-delta.vercel.app/products?featured=true"
+        );
+        setFeatured(res.data.products || []);
+      } catch (err) {
+        console.error("Error fetching featured products:", err);
+      }
+    };
+    fetchFeatured();
+  }, []);
 
-
-useEffect(() => {
-  const fetchCategories = async () => {
-    try {
-      const res = await axios.get("https://e-app-delta.vercel.app/products/categories");
-      setCategories(res.data || []);
-    } catch (err) {
-      console.error("Failed to fetch categories:", err);
-    }
-  };
-  fetchCategories();
-}, []);
-
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await axios.get(
+          "https://e-app-delta.vercel.app/products/categories"
+        );
+        setCategories(res.data || []);
+      } catch (err) {
+        console.error("Failed to fetch categories:", err);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   const visibleCategories = showAllCategories
     ? categories
@@ -90,17 +98,22 @@ useEffect(() => {
         </h2>
 
         <div className="flex flex-wrap gap-3 justify-center">
-          {visibleCategories.map((category, index) => (
-            <span
-              key={index}
-              className="px-4 py-2 rounded-full cursor-pointer bg-gray-200 hover:bg-orange-500 hover:text-white transition"
-              onClick={() => {
-                setCategorySelected(category.name || category);
-              }}
-            >
-              <Link to={`/products`}>{category.name || category}</Link>
-            </span>
-          ))}
+          {visibleCategories.map(
+            (category, index) => (
+              console.log("Categories:", visibleCategories),
+              (
+                <span
+                  key={index}
+                  className="px-4 py-2 rounded-full cursor-pointer bg-gray-200 hover:bg-orange-500 hover:text-white transition"
+                  onClick={() => {
+                    changeCategory(category);
+                  }}
+                >
+                  <Link to={"/products"}>{category}</Link>
+                </span>
+              )
+            )
+          )}
         </div>
 
         <div className="text-center mt-4">

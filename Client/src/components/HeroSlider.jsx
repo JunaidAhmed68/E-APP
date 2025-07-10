@@ -48,8 +48,15 @@ const HeroSlider = () => {
 
   const handleBuyNow = (product) => {
     if (!user) return navigate("/login");
-    navigate("/checkout", { state: { buyNowProduct: { ...product, quantity: 1 } } });
-  };
+    navigate("/checkout", {
+      state: {
+        buyNowItem: {
+          ...product,
+          quantity: 1,
+        },
+      },
+    });
+    };
 
   if (!slides.length) return null;
 
