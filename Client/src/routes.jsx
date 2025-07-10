@@ -9,7 +9,7 @@ import NotFound from "./components/NotFound.jsx";
 import ProductDetail from "./components/Product Details.jsx";
 import Login from "./components/Login.jsx";
 import Signup from "./components/Signup.jsx";
-import ForgotPassword from "./components/forgotPassword.jsx";
+import ForgotPassword from "./components/ForgotPassword.jsx";
 import ResetPassword from "./components/ResetPassword.jsx";
 import SellOnApp from "./components/SellOnApp.jsx";
 import Checkout from "./components/Checkout.jsx";
