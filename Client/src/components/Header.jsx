@@ -202,10 +202,10 @@ const Header = () => {
       <Drawer anchor="right" open={drawerOpen} onClose={toggleDrawer(false)}>
         <Box
           sx={{
-            width: { xs: "75vw", sm: 400 }, // ✅ Responsive width: 75% of screen on small devices, 400px on larger
+            width: { xs: "75vw", sm: 400 },
             padding: 2,
-            backgroundColor: "#fff", // ✅ Ensure it's not invisible on white backgrounds
-            height: "100vh", // ✅ Full height for scrollable menu if needed
+            backgroundColor: "#fff",
+            height: "100vh",
           }}
           role="presentation"
           onClick={toggleDrawer(false)}
@@ -214,7 +214,16 @@ const Header = () => {
           <List>
             {navLinks.map((item) => (
               <ListItem key={item.title} disablePadding>
-                <ListItemButton component={Link} to={item.path}>
+                <ListItemButton
+                  component={NavLink}
+                  to={item.path}
+                  style={({ isActive }) => ({
+                    backgroundColor: isActive ? "orange" : "transparent",
+                    color: isActive ? "#fff" : "#000",
+                    textDecoration: "none",
+                    borderRadius: 8,
+                  })}
+                >
                   {item.title}
                 </ListItemButton>
               </ListItem>

@@ -41,6 +41,7 @@ export default function Login() {
 
   const submitButton = async (formData) => {
     try {
+      setLoading(true)
       const response = await axios.post(
         "https://e-app-delta.vercel.app/auth/login",
         formData

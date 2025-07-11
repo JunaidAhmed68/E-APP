@@ -88,6 +88,8 @@ function ProductDetail() {
             <p><span className="font-medium text-black">In Stock:</span> {product.stock} items</p>
           </div>
 
+
+
           <div>
             <span>Quantity:</span>
             <button

@@ -6,37 +6,30 @@ import { TextField, InputAdornment, IconButton } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/solid";
 import { ProductContext } from "../context/ProductContext.jsx";
-
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
-import { Link, Navigate, useNavigate } from "react-router-dom";
 
 function Products() {
   const [categories, setCategories] = useState(["All"]);
   const [productSearch, setProductSearch] = useState("");
-
-  const { categorySelected, setCategorySelected } = useContext(ProductContext);
   const [showAllCategories, setShowAllCategories] = useState(false);
   const [products, setProducts] = useState([]);
   const [savedProducts, setSavedProducts] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [loadingCategories, setLoadingCategories] = useState(true);
+
+  const { categorySelected, setCategorySelected } = useContext(ProductContext);
   const loading = loadingProducts || loadingCategories;
-  function fetchAllProducts() {
-    setProducts(savedProducts);
-  }
+
   async function justFetchOneTime() {
     try {
       const res = await axios.get("https://e-app-delta.vercel.app/products");
       setSavedProducts(res.data.products);
-      if (categorySelected === "All") {
-        setProducts(res.data.products);
-      }
-      console.log("Fetched all products:", res.data.products);
+      if (categorySelected === "All") setProducts(res.data.products);
     } catch (error) {
       console.error("Error fetching products:", error);
     } finally {
-      setLoadingProducts(false); // ✅
+      setLoadingProducts(false);
     }
   }
 
@@ -46,12 +39,15 @@ function Products() {
         "https://e-app-delta.vercel.app/products/categories"
       );
       setCategories(["All", ...res.data]);
-      console.log("Fetched categories:", res.data);
     } catch (error) {
       console.error("Error fetching categories:", error);
     } finally {
-      setLoadingCategories(false); // ✅
+      setLoadingCategories(false);
     }
+  }
+
+  function fetchAllProducts() {
+    setProducts(savedProducts);
   }
 
   async function fetchProductsByCategory(category) {
@@ -61,10 +57,6 @@ function Products() {
       );
       setProducts(res.data.products);
       setCategorySelected(category);
-      console.log(
-        `Fetched products for category "${category}"`,
-        res.data.products
-      );
     } catch (error) {
       console.error(
         `Error fetching products for category "${category}"`,
@@ -82,57 +74,43 @@ function Products() {
   }, [categorySelected]);
 
   useEffect(() => {
-    console.log("Category selected:", categorySelected);
     justFetchOneTime();
     fetchAllCategories();
   }, []);
+
   useEffect(() => {
     const search = productSearch.trim().toLowerCase();
-
     if (search === "") {
-      setCategorySelected("All"); // Optional: Reset selected category
-      setProducts(savedProducts); // ✅ Show all products
+      setCategorySelected("All");
+      setProducts(savedProducts);
       return;
     }
 
     let filtered = savedProducts.filter((product) =>
       product.title.toLowerCase().includes(search)
     );
-    console.log("Filtered products by title:", filtered);
+
     if (filtered.length === 0) {
       filtered = savedProducts.filter((product) =>
         product.description.toLowerCase().includes(search)
       );
-      console.log("Filtered products by description:", filtered);
     }
-    setProducts(filtered);
 
     if (filtered.length === 0) {
       filtered = savedProducts.filter(
-        (product) => product.category.toLowerCase() == search
+        (product) => product.category.toLowerCase() === search
       );
+
       if (filtered.length > 0) {
-        setCategorySelected(search); // Set category if found
+        setCategorySelected(search);
       } else {
-        setCategorySelected("All"); // Reset category if not found
+        setCategorySelected("All");
       }
-      console.log("Filtered products by category:", filtered);
     }
+
+    setProducts(filtered);
   }, [productSearch, savedProducts]);
 
-  // useEffect(() => {
-  //   if (products.length > 0 || categorySelected !== "") {
-  //     setLoading(false);
-  //   }
-  // }, [products, categorySelected]);
-
-  // if (loading) {
-  //   return (
-  //     <div className="flex items-center justify-center h-screen">
-  //       <Loader />
-  //     </div>
-  //   );
-  // }
   if (loading) {
     return (
       <div className="p-5 max-w-7xl mx-auto">
@@ -151,10 +129,11 @@ function Products() {
   }
 
   return (
-    <div className="p-5 max-w-310 flex justify-self-center">
+    <div className="p-5 flex max-w-310 mx-auto">
       <div className="p-5 w-full">
-        <h2 className="text-3xl mt-4 justify-self-start mb-2">Categories</h2>
+        <h2 className="text-3xl mt-4 mb-2">Categories</h2>
 
+        {/* Categories */}
         <div className="relative mb-4">
           <div
             className={`flex flex-wrap gap-3 overflow-hidden transition-all duration-300 pt-2 ${
@@ -179,6 +158,7 @@ function Products() {
             ))}
           </div>
 
+          {/* Toggle Expand/Collapse */}
           <div className="text-right mt-2">
             <IconButton
               onClick={() => setShowAllCategories(!showAllCategories)}
@@ -192,20 +172,18 @@ function Products() {
           </div>
         </div>
 
+        {/* Search Input */}
         <div className="w-full sm:max-w-md mb-8">
           <TextField
             variant="outlined"
             placeholder="Search products by title, description, or category"
-            className="w-full max-w-xs bg-white rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-blue-500 transition duration-200"
+            className="w-full max-w-xs bg-white rounded-xl shadow-sm"
             value={productSearch}
-            onChange={(e) => {
-              const value = e.target.value;
-              setProductSearch(value);
-            }}
+            onChange={(e) => setProductSearch(e.target.value)}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <IconButton onClick={() => setProductSearch(productSearch)}>
+                  <IconButton>
                     <SearchIcon />
                   </IconButton>
                 </InputAdornment>
@@ -214,15 +192,18 @@ function Products() {
           />
         </div>
 
-        <h2 className="text-3xl mb-4 justify-self-start capitalize">
+        <h2 className="text-3xl mb-4 capitalize">
           {categorySelected} products
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {products.length === 0 ? (
-            <h2 className="col-span-full text-center text-gray-500">
-              No items found for this product
-            </h2>
+        {/* Products Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 min-h-[300px]">
+          {products.length <1? (
+            <div className="col-span-1 sm:col-span-2 md:col-span-3 lg:col-span-4 flex items-center justify-center h-24">
+              <h2 className="text-gray-500 text-xl">
+                No items found for this product
+              </h2>
+            </div>
           ) : (
             products.map((product) => (
               <ProductCard key={product._id} product={product} />
