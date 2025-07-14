@@ -30,6 +30,54 @@ const loginSchema = Joi.object({
   password: Joi.string().min(6).required(),
 });
 
+route.post("/signup", async (req, res) => {
+  try {
+    const { username, email, age, password } = req.body;
+
+    const { error, value } = registerSchema.validate(req.body);
+
+    if (error) {
+      return res.status(400).json({
+        error: true,
+        message: error.details[0].message,
+      });
+    }
+
+    let findUser = await User.findOne({ email });
+    if (findUser) {
+      return res.status(400).json({
+        error: true,
+        message: "User already exists with this email!",
+      });
+    }
+
+    // bcrypt password
+    const salt = await bcrypt.genSalt(10);
+    const hashPassword = await bcrypt.hash(password, salt);
+
+    // create user
+    let newUser = new User({
+      username,
+      email,
+      age,
+      password: hashPassword,
+      isEmailVerified:true,
+    });
+
+    newUser = await newUser.save();
+    res.status(200).json({
+      error: false,
+      message: "User registered successfully!",
+      data: newUser,
+    });
+  } catch (error) {
+    console.error("Error in user registration:", error);
+    return res.status(500).json({
+      error: true,
+      message: "Internal server error!",
+    });
+  }
+});
 // 1️⃣ SEND VERIFICATION EMAIL BEFORE SIGNUP
 route.post("/verify-email", async (req, res) => {
   try {
