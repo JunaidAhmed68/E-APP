@@ -8,6 +8,7 @@ import cartRouter from './routes/cartRoutes.js';
 import productRoutes from './routes/productRoutes.js';
 import orders from './routes/orders.js';
 import contactRoutes from "./routes/contact.js";
+// import review from './routes/review.js';
 import cors from 'cors';
 
 const app = express();
@@ -21,6 +22,7 @@ app.use('/cart', cartRouter);
 app.use("/products", productRoutes);
 app.use('/orders', orders);
 app.use("/contact", contactRoutes);
+// app.use('/review',review)
 
 mongoose.connect(process.env.MONGODB_URL).then(() => {
     console.log('mongodb connected!');

@@ -9,6 +9,7 @@ import { ProductContext } from "../context/ProductContext.jsx";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 
+
 function Products() {
   const [categories, setCategories] = useState(["All"]);
   const [productSearch, setProductSearch] = useState("");
@@ -199,7 +200,7 @@ function Products() {
         {/* Products Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 min-h-[300px]">
           {products.length <1? (
-            <div className="col-span-1 sm:col-span-2 md:col-span-3 lg:col-span-4 flex items-center justify-center h-24">
+            <div className="col-span-1 sm:col-span-2 md:col-span-3 lg:col-span-4 flex items-center justify-center h-24">             
               <h2 className="text-gray-500 text-xl">
                 No items found for this product
               </h2>

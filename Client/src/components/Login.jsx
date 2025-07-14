@@ -4,21 +4,14 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext.jsx";
 import { useContext, useState } from "react";
-import { Link, NavLink, useNavigate } from "react-router";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
-import MessageBar from "./messageBar.jsx";
-import EmailConfirmationModal from "./EmailConfirmationModal";
 import { toast } from "react-toastify";
 
 export default function Login() {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
   const { setUser } = useContext(AuthContext);
-  const [msgOpen, setMsgOpen] = useState(false);
-  const [msgContent, setMsgContent] = useState("");
-  const [msgSeverity, setMsgSeverity] = useState("error");
-  const [showModal, setShowModal] = useState(false);
-  const [pendingEmail, setPendingEmail] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const schema = yup.object({
     email: yup
@@ -41,43 +34,20 @@ export default function Login() {
 
   const submitButton = async (formData) => {
     try {
-      setLoading(true)
+      setLoading(true);
       const response = await axios.post(
         "https://e-app-delta.vercel.app/auth/login",
         formData
       );
-      
+
       const { user, token } = response.data;
-      
-      console.log("Login response:", user.isEmailVerified, token);
-      
-      if (!token || !user.isEmailVerified) {
-        await axios.post("https://e-app-delta.vercel.app/confirmemail/send", {
-          email: formData.email,
-        });
-        setPendingEmail(formData.email);
-        setShowModal(true);
-        return;
-      }
-      
       Cookies.set("token", token);
-      toast.success("Login successful!");
       setUser(user);
-      setLoading(true);
+      toast.success("Login successful!");
       navigate("/");
     } catch (error) {
-      if (error.response?.status === 403) {
-        toast.info("Please verify your email first. We've resent the code.");
-        await axios.post("https://e-app-delta.vercel.app/confirmemail/send", {
-          email: formData.email,
-        });
-        setPendingEmail(formData.email);
-        setShowModal(true);
-      } else {
-        console.error("Login error:", error);
-        const msg = error.response?.data?.message || "Login failed";
-        toast.error(msg);
-      }
+      const msg = error.response?.data?.message || "Login failed";
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -86,13 +56,6 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-white px-4">
       <div className="w-full sm:w-[90%] md:w-[70%] lg:w-[40%] bg-white p-8 shadow-xl rounded-xl border border-gray-100">
-        {/* MessageBar */}
-        <MessageBar
-          message={msgContent}
-          severity={msgSeverity}
-          open={msgOpen}
-          setOpen={setMsgOpen}
-        />
         <h2 className="text-3xl font-bold text-center mb-8 text-blue-700">
           Login to Your Account
         </h2>
@@ -150,27 +113,21 @@ export default function Login() {
           >
             {loading ? "Signing In..." : "Login"}
           </button>
-          <Link  to="/forgotpassword"  > <p className="flex justify-center mt-2 mb-2 text-blue-400 hover:text-blue-700">Forgot Password?</p></Link>
+
+          <Link to="/forgotpassword">
+            <p className="flex justify-center mt-2 mb-2 text-blue-400 hover:text-blue-700">
+              Forgot Password?
+            </p>
+          </Link>
           <span className="flex justify-center">OR</span>
-          {/* <GoogleLoginBtn label="Continue with Google" /> */}
         </form>
 
-        <NavLink to={"/signup"}>
+        <NavLink to="/signup">
           <span className="flex justify-center mt-2 text-blue-400 hover:text-blue-700">
             Don't have an account? Signup
           </span>
         </NavLink>
       </div>
-
-      {showModal && (
-        <EmailConfirmationModal
-          email={pendingEmail}
-          onVerified={() => {
-            setShowModal(false);
-            toast.success("Email verified! You can now log in.");
-          }}
-        />
-      )}
     </div>
   );
 }
