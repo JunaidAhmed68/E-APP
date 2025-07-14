@@ -24,7 +24,7 @@ const sendVerificationEmail = async (email) => {
     subject: "Email Verification Code",
     html: `
   <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto; border: 1px solid #eaeaea; padding: 20px; border-radius: 10px; background-color: #f9f9f9;">
-    <h2 style="text-align: center; color: #3b82f6;">${process.env.EMAIL_USER }</h2>
+    <h2 style="text-align: center; color: #3b82f6;">${process.env.EMAIL_USER}</h2>
     <p style="font-size: 16px; color: #333;">
       Hello,
     </p>
@@ -43,8 +43,7 @@ const sendVerificationEmail = async (email) => {
       —My App Team
     </p>
   </div>
-`
-,
+`,
   });
 
   verificationCodes[email] = {
@@ -64,14 +63,18 @@ const verifyCode = (email, inputCode) => {
   if (record.code !== inputCode.toString().trim())
     return { success: false, message: "Invalid code" };
 
-
-
   delete verificationCodes[email];
   return { success: true, message: "Email verified" };
 };
 
 router.post("/send", async (req, res) => {
   const { email } = req.body;
+  const existing = await User.findOne({ email });
+  if (existing) {
+    return res
+      .status(400)
+      .json({ error: true, message: "User already exists!" });
+  }
   try {
     await sendVerificationEmail(email);
     res.json({ success: true, message: "Verification code sent to email" });
