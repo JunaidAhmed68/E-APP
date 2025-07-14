@@ -19,7 +19,7 @@ import { useCart } from "../context/CartContext";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import Badge from "@mui/material/Badge";
 
-const navLinks = [
+let navLinks = [
   { title: "Home", path: "/" },
   { title: "About", path: "/about" },
   { title: "Contact", path: "/contact" },
@@ -55,6 +55,8 @@ const Header = () => {
       console.error("Logout failed:", error);
     }
   };
+
+
 
   // useEffect(() => {
   //   const fetchUserData = async () => {
@@ -181,9 +183,9 @@ const Header = () => {
                 />
               </>
             ) : (
-              <NavLink to="signup">
-                <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg shadow-md transition duration-300 ease-in-out w-full sm:w-auto">
-                  Signup
+              <NavLink to="login">
+                <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg shadow-md transition duration-300 ease-in-out w-full sm:w-auto active:bg-blue-800 ">
+                  Login
                 </button>
               </NavLink>
             )}

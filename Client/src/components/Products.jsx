@@ -2,13 +2,23 @@ import { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import Loader from "./Loader.jsx";
 import ProductCard from "./Product_Card.jsx";
-import { TextField, InputAdornment, IconButton } from "@mui/material";
+import {
+  TextField,
+  InputAdornment,
+  IconButton,
+  Tooltip,
+  Menu,
+  MenuItem,
+  Checkbox,
+  FormControlLabel,
+} from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
+import FilterListIcon from "@mui/icons-material/FilterList";
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/solid";
 import { ProductContext } from "../context/ProductContext.jsx";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
-
+import { motion, AnimatePresence } from "framer-motion";
 
 function Products() {
   const [categories, setCategories] = useState(["All"]);
@@ -18,9 +28,22 @@ function Products() {
   const [savedProducts, setSavedProducts] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [loadingCategories, setLoadingCategories] = useState(true);
-
   const { categorySelected, setCategorySelected } = useContext(ProductContext);
   const loading = loadingProducts || loadingCategories;
+
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [filterOptions, setFilterOptions] = useState({
+    title: true,
+    description: false,
+    category: false,
+  });
+
+  const open = Boolean(anchorEl);
+  const handleFilterClick = (event) => setAnchorEl(event.currentTarget);
+  const handleFilterClose = () => setAnchorEl(null);
+  const handleFilterChange = (option) => {
+    setFilterOptions((prev) => ({ ...prev, [option]: !prev[option] }));
+  };
 
   async function justFetchOneTime() {
     try {
@@ -36,9 +59,7 @@ function Products() {
 
   async function fetchAllCategories() {
     try {
-      const res = await axios.get(
-        "https://e-app-delta.vercel.app/products/categories"
-      );
+      const res = await axios.get("https://e-app-delta.vercel.app/products/categories");
       setCategories(["All", ...res.data]);
     } catch (error) {
       console.error("Error fetching categories:", error);
@@ -53,25 +74,17 @@ function Products() {
 
   async function fetchProductsByCategory(category) {
     try {
-      const res = await axios.get(
-        `https://e-app-delta.vercel.app/products/category/${category}`
-      );
+      const res = await axios.get(`https://e-app-delta.vercel.app/products/category/${category}`);
       setProducts(res.data.products);
       setCategorySelected(category);
     } catch (error) {
-      console.error(
-        `Error fetching products for category "${category}"`,
-        error
-      );
+      console.error(`Error fetching products for category "${category}"`, error);
     }
   }
 
   useEffect(() => {
-    if (categorySelected === "All") {
-      fetchAllProducts();
-    } else {
-      fetchProductsByCategory(categorySelected);
-    }
+    if (categorySelected === "All") fetchAllProducts();
+    else fetchProductsByCategory(categorySelected);
   }, [categorySelected]);
 
   useEffect(() => {
@@ -81,36 +94,49 @@ function Products() {
 
   useEffect(() => {
     const search = productSearch.trim().toLowerCase();
-    if (search === "") {
-      setCategorySelected("All");
-      setProducts(savedProducts);
-      return;
-    }
 
-    let filtered = savedProducts.filter((product) =>
-      product.title.toLowerCase().includes(search)
-    );
-
-    if (filtered.length === 0) {
-      filtered = savedProducts.filter((product) =>
-        product.description.toLowerCase().includes(search)
-      );
-    }
-
-    if (filtered.length === 0) {
-      filtered = savedProducts.filter(
-        (product) => product.category.toLowerCase() === search
-      );
-
-      if (filtered.length > 0) {
-        setCategorySelected(search);
-      } else {
+    const timeout = setTimeout(() => {
+      if (search === "") {
         setCategorySelected("All");
+        setProducts(savedProducts);
+        return;
       }
-    }
 
-    setProducts(filtered);
-  }, [productSearch, savedProducts]);
+      let filtered = [];
+
+      if (filterOptions.title) {
+        filtered = filtered.concat(
+          savedProducts.filter((product) =>
+            product.title.toLowerCase().includes(search)
+          )
+        );
+      }
+
+      if (filterOptions.description) {
+        filtered = filtered.concat(
+          savedProducts.filter((product) =>
+            product.description.toLowerCase().includes(search)
+          )
+        );
+      }
+
+      if (filterOptions.category) {
+        filtered = filtered.concat(
+          savedProducts.filter((product) =>
+            product.category.toLowerCase().includes(search)
+          )
+        );
+      }
+
+      const uniqueFiltered = Array.from(new Set(filtered.map((p) => p._id))).map(
+        (id) => filtered.find((p) => p._id === id)
+      );
+
+      setProducts(uniqueFiltered);
+    }, 500);
+
+    return () => clearTimeout(timeout);
+  }, [productSearch, savedProducts, filterOptions]);
 
   if (loading) {
     return (
@@ -134,20 +160,20 @@ function Products() {
       <div className="p-5 w-full">
         <h2 className="text-3xl mt-4 mb-2">Categories</h2>
 
-        {/* Categories */}
         <div className="relative mb-4">
-          <div
+          <motion.div
+            layout
             className={`flex flex-wrap gap-3 overflow-hidden transition-all duration-300 pt-2 ${
               showAllCategories ? "max-h-[1000px]" : "max-h-[100px]"
             }`}
           >
             {categories.map((category, index) => (
-              <span
+              <motion.span
                 key={index}
-                className={`px-4 py-2 rounded-full cursor-pointer hover:outline-2 hover:outline-orange-400 ${
-                  category === categorySelected
-                    ? "bg-orange-400 text-white"
-                    : "bg-gray-200"
+                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.05 }}
+                className={`px-4 py-2 rounded-full cursor-pointer transition duration-200 hover:outline-2 hover:outline-orange-400 ${
+                  category === categorySelected ? "bg-orange-400 text-white" : "bg-gray-200"
                 }`}
                 onClick={() => {
                   setProductSearch("");
@@ -155,15 +181,12 @@ function Products() {
                 }}
               >
                 {category}
-              </span>
+              </motion.span>
             ))}
-          </div>
+          </motion.div>
 
-          {/* Toggle Expand/Collapse */}
           <div className="text-right mt-2">
-            <IconButton
-              onClick={() => setShowAllCategories(!showAllCategories)}
-            >
+            <IconButton onClick={() => setShowAllCategories(!showAllCategories)}>
               {showAllCategories ? (
                 <ChevronUpIcon className="h-5 w-5 text-blue-500" />
               ) : (
@@ -173,44 +196,88 @@ function Products() {
           </div>
         </div>
 
-        {/* Search Input */}
-        <div className="w-full sm:max-w-md mb-8">
+        <div className="w-full sm:max-w-md mb-8 flex items-center gap-2">
           <TextField
             variant="outlined"
-            placeholder="Search products by title, description, or category"
-            className="w-full max-w-xs bg-white rounded-xl shadow-sm"
+            placeholder="Search..."
+            className="w-full bg-white rounded-xl shadow-sm"
             value={productSearch}
             onChange={(e) => setProductSearch(e.target.value)}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <IconButton>
-                    <SearchIcon />
-                  </IconButton>
+                  <SearchIcon />
                 </InputAdornment>
               ),
             }}
           />
+
+          <Tooltip title="Filter Options">
+            <IconButton
+              onClick={handleFilterClick}
+              sx={{
+                border: "1px solid #e0e0e0",
+                borderRadius: "8px",
+                backgroundColor: "#f9f9f9",
+                "&:hover": {
+                  backgroundColor: "#f1f1f1",
+                },
+              }}
+            >
+              <FilterListIcon />
+            </IconButton>
+          </Tooltip>
+
+          <Menu
+            anchorEl={anchorEl}
+            open={open}
+            onClose={handleFilterClose}
+            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+            transformOrigin={{ vertical: "top", horizontal: "right" }}
+          >
+            {["title", "description", "category"].map((opt) => (
+              <MenuItem key={opt} onClick={() => handleFilterChange(opt)}>
+                <FormControlLabel
+                  control={<Checkbox checked={filterOptions[opt]} />}
+                  label={`By ${opt.charAt(0).toUpperCase() + opt.slice(1)}`}
+                />
+              </MenuItem>
+            ))}
+          </Menu>
         </div>
 
-        <h2 className="text-3xl mb-4 capitalize">
-          {categorySelected} products
-        </h2>
+        <h2 className="text-3xl mb-4 capitalize">{categorySelected} products</h2>
 
-        {/* Products Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 min-h-[300px]">
-          {products.length <1? (
-            <div className="col-span-1 sm:col-span-2 md:col-span-3 lg:col-span-4 flex items-center justify-center h-24">             
+        <motion.div
+          layout
+          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 min-h-[300px]"
+        >
+          {products.length ==0  ? (
+            <motion.div
+              className="col-span-full flex items-center justify-center h-24"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
               <h2 className="text-gray-500 text-xl">
                 No items found for this product
               </h2>
-            </div>
+            </motion.div>
           ) : (
-            products.map((product) => (
-              <ProductCard key={product._id} product={product} />
-            ))
+            <AnimatePresence>
+              {products.map((product) => (
+                <motion.div
+                  key={product._id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <ProductCard product={product} />
+                </motion.div>
+              ))}
+            </AnimatePresence>
           )}
-        </div>
+        </motion.div>
       </div>
     </div>
   );

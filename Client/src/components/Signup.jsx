@@ -18,6 +18,7 @@ export default function Signup() {
   const [showModal, setShowModal] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState("");
   const [pendingUserData, setPendingUserData] = useState(null);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const {
@@ -27,23 +28,28 @@ export default function Signup() {
   } = useForm({ resolver: yupResolver(schema) });
 
   const onSubmit = async (data) => {
+    setLoading(true);
     try {
-      // Send verification code
       await axios.post("https://e-app-delta.vercel.app/confirmemail/send", {
         email: data.email,
       });
 
       setRegisteredEmail(data.email);
       setPendingUserData(data);
-      setShowModal(true); // open modal to enter code
+      setShowModal(true);
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to send email");
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleVerificationSuccess = async () => {
     try {
-      const res = await axios.post("https://e-app-delta.vercel.app/auth/signup", pendingUserData);
+      const res = await axios.post(
+        "https://e-app-delta.vercel.app/auth/signup",
+        pendingUserData
+      );
       toast.success("Account created successfully!");
       setShowModal(false);
       navigate("/login");
@@ -55,36 +61,99 @@ export default function Signup() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-white px-4">
       <div className="w-full sm:w-[90%] md:w-[70%] lg:w-[40%] bg-white p-8 shadow-2xl rounded-xl border border-gray-100">
-        <h2 className="text-3xl font-bold text-center mb-6 text-blue-700">Create Account</h2>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        <h2 className="text-3xl font-bold text-center mb-8 text-blue-700">
+          Create Account
+        </h2>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {/* Username */}
           <div>
-            <input {...register("username")} placeholder="Username" className="input" />
-            {errors.username && <p className="error">{errors.username.message}</p>}
+            <input
+              {...register("username")}
+              placeholder="Username"
+              className={`w-full px-4 py-2 border ${
+                errors.username ? "border-red-500" : "border-gray-300"
+              } rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400`}
+            />
+            {errors.username && (
+              <p className="text-sm text-red-500 mt-1">
+                {errors.username.message}
+              </p>
+            )}
           </div>
+
+          {/* Email */}
           <div>
-            <input {...register("email")} type="email" placeholder="Email" className="input" />
-            {errors.email && <p className="error">{errors.email.message}</p>}
+            <input
+              {...register("email")}
+              type="email"
+              placeholder="Email"
+              className={`w-full px-4 py-2 border ${
+                errors.email ? "border-red-500" : "border-gray-300"
+              } rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400`}
+            />
+            {errors.email && (
+              <p className="text-sm text-red-500 mt-1">
+                {errors.email.message}
+              </p>
+            )}
           </div>
+
+          {/* Age */}
           <div>
-            <input {...register("age")} type="number" placeholder="Age" className="input" />
-            {errors.age && <p className="error">{errors.age.message}</p>}
+            <input
+              {...register("age")}
+              type="number"
+              placeholder="Age"
+              className={`w-full px-4 py-2 border ${
+                errors.age ? "border-red-500" : "border-gray-300"
+              } rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400`}
+            />
+            {errors.age && (
+              <p className="text-sm text-red-500 mt-1">
+                {errors.age.message}
+              </p>
+            )}
           </div>
+
+          {/* Password */}
           <div>
-            <input {...register("password")} type="password" placeholder="Password" className="input" />
-            {errors.password && <p className="error">{errors.password.message}</p>}
+            <input
+              {...register("password")}
+              type="password"
+              placeholder="Password"
+              className={`w-full px-4 py-2 border ${
+                errors.password ? "border-red-500" : "border-gray-300"
+              } rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400`}
+            />
+            {errors.password && (
+              <p className="text-sm text-red-500 mt-1">
+                {errors.password.message}
+              </p>
+            )}
           </div>
-          <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition duration-300">
-            Sign Up
+
+          {/* Submit button */}
+          <button
+            type="submit"
+            disabled={loading}
+            className={`w-full py-2 text-white font-semibold rounded-lg transition duration-300 ${
+              loading
+                ? "bg-blue-400 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700"
+            }`}
+          >
+            {loading ? "Signing up..." : "Sign up"}
           </button>
         </form>
+
         <NavLink to="/login">
-          <span className="flex justify-center mt-2 text-blue-400 hover:text-blue-700">
+          <span className="flex justify-center mt-4 text-blue-500 hover:underline">
             Already have an account? Login
           </span>
         </NavLink>
       </div>
 
-      {/* Email confirmation modal */}
+      {/* Modal */}
       {showModal && (
         <EmailConfirmationModal
           email={registeredEmail}

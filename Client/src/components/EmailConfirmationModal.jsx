@@ -7,6 +7,7 @@ const EmailConfirmationModal = ({ email, onVerified, onClose }) => {
   const [loading, setLoading] = useState(false);
 
   const handleVerify = async () => {
+    setLoading(true);
     if (!code.trim()) return toast.warn("Enter verification code");
 
     try {
@@ -43,13 +44,26 @@ const EmailConfirmationModal = ({ email, onVerified, onClose }) => {
           >
             Cancel
           </button>
+
           <button
+           onClick={handleVerify}
+            disabled={loading}
+            className={`w-full py-2 text-white font-semibold rounded-lg transition duration-300 ${
+              loading
+                ? "bg-blue-400 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700"
+            }`}
+          >
+            {loading ? "Verifying..." : "Verify"}
+          </button>
+
+          {/* <button
             onClick={handleVerify}
             disabled={loading}
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
             {loading ? "Verifying..." : "Verify"}
-          </button>
+          </button> */}
         </div>
       </div>
     </div>
