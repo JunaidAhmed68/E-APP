@@ -6,8 +6,9 @@ import jwt from "jsonwebtoken";
 import "dotenv/config";
 import nodemailer from "nodemailer";
 
-let route = express.Router();
+const route = express.Router();
 
+// Validation schema
 const registerSchema = Joi.object({
   username: Joi.string()
     .trim()
@@ -29,158 +30,169 @@ const loginSchema = Joi.object({
   password: Joi.string().min(6).required(),
 });
 
-route.post("/signup", async (req, res) => {
+// 1️⃣ SEND VERIFICATION EMAIL BEFORE SIGNUP
+route.post("/verify-email", async (req, res) => {
   try {
-    const { username, email, age, password } = req.body;
+    const { username, email, password, age } = req.body;
 
-    const { error, value } = registerSchema.validate(req.body);
-
+    const { error } = registerSchema.validate(req.body);
     if (error) {
-      return res.status(400).json({
-        error: true,
-        message: error.details[0].message,
-      });
+      return res.status(400).json({ error: true, message: error.details[0].message });
     }
 
-    let findUser = await User.findOne({ email });
-    if (findUser) {
-      return res.status(400).json({
-        error: true,
-        message: "User already exists with this email!",
-      });
+    const existing = await User.findOne({ email });
+    if (existing) {
+      return res.status(400).json({ error: true, message: "User already exists!" });
     }
 
-    // bcrypt password
-    const salt = await bcrypt.genSalt(10);
-    const hashPassword = await bcrypt.hash(password, salt);
-
-    // create user
-    let newUser = new User({
-      username,
-      email,
-      age,
-      password: hashPassword,
-      isEmailVerified:true,
+    const token = jwt.sign({ username, email, password, age }, process.env.JWT_SECRET, {
+      expiresIn: "10m",
     });
 
-    newUser = await newUser.save();
-    res.status(200).json({
-      error: false,
-      message: "User registered successfully!",
-      data: newUser,
+    const verificationLink = `http://localhost:5173/confirm-email/${token}`;
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
     });
-  } catch (error) {
-    console.error("Error in user registration:", error);
-    return res.status(500).json({
-      error: true,
-      message: "Internal server error!",
+
+    await transporter.sendMail({
+      from: `"MyApp" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Email Verification",
+      html: `
+        <h3>Email Confirmation</h3>
+        <p>Click the link below to confirm your email and complete registration:</p>
+        <a href="${verificationLink}">${verificationLink}</a>
+        <p>This link expires in 10 minutes.</p>
+      `,
     });
+
+    res.status(200).json({ error: false, message: "Verification email sent!" });
+  } catch (err) {
+    console.error("Verification email error:", err);
+    res.status(500).json({ error: true, message: "Failed to send verification email!" });
   }
 });
 
-route.post("/login", async (req, res) => {
+// 2️⃣ CONFIRM EMAIL → CREATE ACCOUNT
+route.post("/confirm-email/:token", async (req, res) => {
   try {
-    let { email, password } = req.body;
-    let { error, value } = loginSchema.validate(req.body);
-    if (error) {
-      return res.status(400).json({
-        error: true,
-        message: error.details[0].message,
-      });
+    const { token } = req.params;
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const { username, email, password, age } = decoded;
+
+    const existing = await User.findOne({ email });
+    if (existing) {
+      return res.status(400).json({ error: true, message: "User already exists!" });
     }
 
-    // find user by email
-    let findUser = await User.findOne({ email });
-    if (!findUser) {
-      return res.status(400).json({
-        error: true,
-        message: "User not found with this email!",
-      });
-    }
-    // compare password
-    const isPasswordValid = await bcrypt.compare(password, findUser.password);
-    if (!isPasswordValid) {
-      return res.status(400).json({
-        error: true,
-        message: "Invalid credentials!",
-      });
-    }
-    if (findUser.isEmailVerified === false) {
-    return res.status(403).json({ message: "Email not verified" });
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const newUser = new User({
+      username,
+      email,
+      age,
+      password: hashedPassword,
+      isEmailVerified: true,
+    });
+
+    await newUser.save();
+
+    res.status(200).json({ error: false, message: "Email verified and account created!" });
+  } catch (err) {
+    console.error("Email confirmation error:", err);
+    res.status(400).json({ error: true, message: "Invalid or expired verification link!" });
   }
-    // create jwt token
-    let token = jwt.sign(
+});
+
+// 3️⃣ LOGIN
+route.post("/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const { error } = loginSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ error: true, message: error.details[0].message });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ error: true, message: "User not found!" });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ error: true, message: "Invalid credentials!" });
+    }
+
+    if (!user.isEmailVerified) {
+      return res.status(403).json({ error: true, message: "Email not verified!" });
+    }
+
+    const token = jwt.sign(
       {
-        username: findUser.username,
-        email: findUser.email,
-        age: findUser.age,
-        _id: findUser._id,
+        username: user.username,
+        email: user.email,
+        age: user.age,
+        _id: user._id,
       },
       process.env.JWT_SECRET
     );
 
     res.status(200).json({
       error: false,
-      message: "User logged in successfully!",
+      message: "Logged in successfully!",
       user: {
-        username: findUser.username,
-        email: findUser.email,
-        age: findUser.age,
-        _id: findUser._id,
-        isEmailVerified: findUser.isEmailVerified,
+        username: user.username,
+        email: user.email,
+        age: user.age,
+        _id: user._id,
+        isEmailVerified: user.isEmailVerified,
       },
-      token: token,
+      token,
     });
-  } catch (error) {
-    console.error("Error in user login:", error);
-    return res.status(500).json({
-      error: true,
-      message: "Internal server error!",
-    });
+  } catch (err) {
+    console.error("Login error:", err);
+    res.status(500).json({ error: true, message: "Internal server error!" });
   }
 });
 
+// 4️⃣ GET LOGGED-IN USER
 route.get("/user", (req, res) => {
   if (!req.headers.authorization) {
-    return res.status(401).json({
-      error: true,
-      message: "Token not provided, please login first!",
-    });
+    return res.status(401).json({ error: true, message: "Token not provided!" });
   }
+
   const token = req.headers.authorization.split(" ")[1];
 
-  let decodedUser = jwt.verify(token, process.env.JWT_SECRET);
-  if (!decodedUser) {
-    return res.status(401).json({
-      error: true,
-      message: "Invalid token!",
+  try {
+    const decodedUser = jwt.verify(token, process.env.JWT_SECRET);
+    res.status(200).json({
+      error: false,
+      message: "User data fetched successfully!",
+      data: decodedUser,
     });
+  } catch (err) {
+    res.status(401).json({ error: true, message: "Invalid token!" });
   }
-  res.status(200).json({
-    error: false,
-    message: "User data fetched successfully!",
-    data: decodedUser,
-  });
 });
 
-
-
-// FORGOT PASSWORD
+// 5️⃣ FORGOT PASSWORD
 route.post("/forgot-password", async (req, res) => {
   try {
     const { email } = req.body;
 
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(404).json({
-        error: true,
-        message: "User not found with this email!",
-      });
+      return res.status(404).json({ error: true, message: "User not found!" });
     }
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "15m",
-    });
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "15m" });
 
     const resetLink = `http://localhost:5173/reset-password/${token}`;
 
@@ -194,29 +206,23 @@ route.post("/forgot-password", async (req, res) => {
 
     await transporter.sendMail({
       from: `"MyApp Support" <${process.env.EMAIL_USER}>`,
-      to: user.email,
+      to: email,
       subject: "Password Reset Request",
       html: `
         <h3>Password Reset</h3>
-        <p>Click the link below to reset your password. It expires in 15 minutes:</p>
+        <p>Click the link below to reset your password. This link expires in 15 minutes:</p>
         <a href="${resetLink}">${resetLink}</a>
       `,
     });
 
-    return res.status(200).json({
-      error: false,
-      message: "Password reset email sent!",
-    });
-  } catch (error) {
-    console.error("Forgot password error:", error);
-    return res.status(500).json({
-      error: true,
-      message: "Internal server error!",
-    });
+    res.status(200).json({ error: false, message: "Reset email sent!" });
+  } catch (err) {
+    console.error("Forgot password error:", err);
+    res.status(500).json({ error: true, message: "Something went wrong!" });
   }
 });
 
-// RESET PASSWORD
+// 6️⃣ RESET PASSWORD
 route.post("/reset-password/:token", async (req, res) => {
   try {
     const { password } = req.body;
@@ -226,28 +232,18 @@ route.post("/reset-password/:token", async (req, res) => {
     const user = await User.findById(decoded.id);
 
     if (!user) {
-      return res.status(404).json({
-        error: true,
-        message: "User not found!",
-      });
+      return res.status(404).json({ error: true, message: "User not found!" });
     }
 
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    user.password = await bcrypt.hash(password, salt);
 
-    user.password = hashedPassword;
     await user.save();
 
-    return res.status(200).json({
-      error: false,
-      message: "Password reset successful!",
-    });
-  } catch (error) {
-    console.error("Reset password error:", error);
-    return res.status(500).json({
-      error: true,
-      message: "Invalid or expired token!",
-    });
+    res.status(200).json({ error: false, message: "Password reset successful!" });
+  } catch (err) {
+    console.error("Reset password error:", err);
+    res.status(400).json({ error: true, message: "Invalid or expired reset token!" });
   }
 });
 
