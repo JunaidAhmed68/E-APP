@@ -60,7 +60,9 @@ route.post("/signup", async (req, res) => {
       email,
       age,
       password: hashPassword,
+      isEmailVerified:true,
     });
+
     newUser = await newUser.save();
     res.status(200).json({
       error: false,

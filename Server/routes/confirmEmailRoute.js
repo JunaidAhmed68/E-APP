@@ -18,7 +18,6 @@ const transporter = nodemailer.createTransport({
 
 const sendVerificationEmail = async (email) => {
   const code = Math.floor(100000 + Math.random() * 900000).toString(); // store as string
-
   await transporter.sendMail({
     from: `"Verify Account" <${process.env.EMAIL_USER}>`,
     to: email,
@@ -65,6 +64,8 @@ const verifyCode = (email, inputCode) => {
   if (record.code !== inputCode.toString().trim())
     return { success: false, message: "Invalid code" };
 
+
+
   delete verificationCodes[email];
   return { success: true, message: "Email verified" };
 };
@@ -90,8 +91,6 @@ router.post("/verify", async (req, res) => {
   if (!result.success) {
     return res.status(400).json({ message: result.message });
   }
-
-  await User.findOneAndUpdate({ email }, { isEmailVerified: true });
   return res.status(200).json({ success: true, message: "Email verified" });
 });
 
