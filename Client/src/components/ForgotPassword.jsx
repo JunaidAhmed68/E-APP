@@ -42,7 +42,7 @@ const ForgotPassword = () => {
       setTimeout(() => {
         setDisableButton(false);
         setEmail("");
-      }, 1 * 60 * 1000); // 5 minutes in milliseconds
+      }, 1 * 60 * 1000); // 1 minutes in milliseconds
       setTimer(true);
     } catch (err) {
       toast.error(err.response?.data?.message || "Error");
