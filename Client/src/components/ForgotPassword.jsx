@@ -1,10 +1,34 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [disableButton, setDisableButton] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [timer, setTimer] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(0);
+  const intervalRef = useRef(null); // used to store the interval id
+
+  useEffect(() => {
+    if (timer) {
+      setTimeLeft(1 * 60); // 5 minutes in seconds
+
+      intervalRef.current = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            clearInterval(intervalRef.current);
+            setTimer(false);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+
+    // Cleanup when timer is false or component unmounts
+    return () => clearInterval(intervalRef.current);
+  }, [timer]);
 
   const handleForgot = async (e) => {
     e.preventDefault();
@@ -18,11 +42,15 @@ const ForgotPassword = () => {
       setTimeout(() => {
         setDisableButton(false);
         setEmail("");
-      }, 900000); // 15 minutes in milliseconds
+      }, 1 * 60 * 1000); // 5 minutes in milliseconds
+      setTimer(true);
     } catch (err) {
       toast.error(err.response?.data?.message || "Error");
     }
   };
+
+  if (timer) {
+  }
 
   return (
     <div className="max-w-sm mx-auto mt-10">
@@ -43,7 +71,9 @@ const ForgotPassword = () => {
           }`}
           disabled={disableButton}
         >
-          {disableButton ? "Wait 15 minutes " : "Send Reset Link"}
+          {disableButton
+            ? `Wait for ${timeLeft} seconds  to resend link` 
+            : "Send Reset Link"}
         </button>
       </form>
     </div>
