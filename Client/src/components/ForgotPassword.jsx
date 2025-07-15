@@ -5,7 +5,6 @@ import { toast } from "react-toastify";
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [disableButton, setDisableButton] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [timer, setTimer] = useState(false);
   const [timeLeft, setTimeLeft] = useState(0);
   const intervalRef = useRef(null); // used to store the interval id
@@ -13,12 +12,13 @@ const ForgotPassword = () => {
   useEffect(() => {
     if (timer) {
       setTimeLeft(1 * 60); // 5 minutes in seconds
-
+      
       intervalRef.current = setInterval(() => {
         setTimeLeft((prev) => {
           if (prev <= 1) {
             clearInterval(intervalRef.current);
             setTimer(false);
+            setDisableButton(false)
             return 0;
           }
           return prev - 1;
@@ -32,13 +32,13 @@ const ForgotPassword = () => {
 
   const handleForgot = async (e) => {
     e.preventDefault();
+    setDisableButton(true);
     try {
       const res = await axios.post(
         "https://e-app-delta.vercel.app/auth/forgot-password",
         { email }
       );
       toast.success(res.data.message);
-      setDisableButton(true);
       setTimeout(() => {
         setDisableButton(false);
         setEmail("");
