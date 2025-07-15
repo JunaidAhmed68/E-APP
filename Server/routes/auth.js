@@ -8,7 +8,7 @@ import nodemailer from "nodemailer";
 
 const route = express.Router();
 
-// Validation schema
+// SIGNUP Validation schema 
 const registerSchema = Joi.object({
   username: Joi.string()
     .trim()
@@ -22,7 +22,7 @@ const registerSchema = Joi.object({
   password: Joi.string().min(6).required(),
   age: Joi.number().strict().integer().min(1).required(),
 });
-
+// LOGIN Validation schema
 const loginSchema = Joi.object({
   email: Joi.string()
     .email({ minDomainSegments: 2, tlds: { allow: ["com", "net", "dev"] } })
@@ -30,6 +30,7 @@ const loginSchema = Joi.object({
   password: Joi.string().min(6).required(),
 });
 
+// SIGNUP 
 route.post("/signup", async (req, res) => {
   try {
     const { username, email, age, password } = req.body;
@@ -78,88 +79,8 @@ route.post("/signup", async (req, res) => {
     });
   }
 });
-// 1️⃣ SEND VERIFICATION EMAIL BEFORE SIGNUP
-route.post("/verify-email", async (req, res) => {
-  try {
-    const { username, email, password, age } = req.body;
 
-    const { error } = registerSchema.validate(req.body);
-    if (error) {
-      return res.status(400).json({ error: true, message: error.details[0].message });
-    }
-
-    const existing = await User.findOne({ email });
-    if (existing) {
-      return res.status(400).json({ error: true, message: "User already exists!" });
-    }
-
-    const token = jwt.sign({ username, email, password, age }, process.env.JWT_SECRET, {
-      expiresIn: "10m",
-    });
-
-    const verificationLink = `http://localhost:5173/confirm-email/${token}`;
-
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
-
-    await transporter.sendMail({
-      from: `"MyApp" <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: "Email Verification",
-      html: `
-        <h3>Email Confirmation</h3>
-        <p>Click the link below to confirm your email and complete registration:</p>
-        <a href="${verificationLink}">${verificationLink}</a>
-        <p>This link expires in 10 minutes.</p>
-      `,
-    });
-
-    res.status(200).json({ error: false, message: "Verification email sent!" });
-  } catch (err) {
-    console.error("Verification email error:", err);
-    res.status(500).json({ error: true, message: "Failed to send verification email!" });
-  }
-});
-
-// 2️⃣ CONFIRM EMAIL → CREATE ACCOUNT
-route.post("/confirm-email/:token", async (req, res) => {
-  try {
-    const { token } = req.params;
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const { username, email, password, age } = decoded;
-
-    const existing = await User.findOne({ email });
-    if (existing) {
-      return res.status(400).json({ error: true, message: "User already exists!" });
-    }
-
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    const newUser = new User({
-      username,
-      email,
-      age,
-      password: hashedPassword,
-      isEmailVerified: true,
-    });
-
-    await newUser.save();
-
-    res.status(200).json({ error: false, message: "Email verified and account created!" });
-  } catch (err) {
-    console.error("Email confirmation error:", err);
-    res.status(400).json({ error: true, message: "Invalid or expired verification link!" });
-  }
-});
-
-// 3️⃣ LOGIN
+//  LOGIN
 route.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -210,7 +131,7 @@ route.post("/login", async (req, res) => {
   }
 });
 
-// 4️⃣ GET LOGGED-IN USER
+//  GET LOGGED-IN USER
 route.get("/user", (req, res) => {
   if (!req.headers.authorization) {
     return res.status(401).json({ error: true, message: "Token not provided!" });
@@ -230,7 +151,7 @@ route.get("/user", (req, res) => {
   }
 });
 
-// 5️⃣ FORGOT PASSWORD
+//  FORGOT PASSWORD
 route.post("/forgot-password", async (req, res) => {
   try {
     const { email } = req.body;
@@ -242,7 +163,7 @@ route.post("/forgot-password", async (req, res) => {
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "15m" });
 
-    const resetLink = `http://localhost:5173/reset-password/${token}`;
+    const resetLink = `https://e-app-ru4i.vercel.app/reset-password/${token}`;
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -270,7 +191,7 @@ route.post("/forgot-password", async (req, res) => {
   }
 });
 
-// 6️⃣ RESET PASSWORD
+//  RESET PASSWORD
 route.post("/reset-password/:token", async (req, res) => {
   try {
     const { password } = req.body;
