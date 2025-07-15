@@ -8,18 +8,22 @@ const ResetPassword = () => {
   const { token } = useParams();
   const navigate = useNavigate();
   const [reset, setReset] = useState(false);
+  const [loading, setLoading]= useState(false)
 
   const handleReset = async (e) => {
     e.preventDefault();
+    setLoading(true)
     try {
       const res = await axios.post(`https://e-app-delta.vercel.app/auth/reset-password/${token}`, {
         password,
       });
       toast.success(res.data.message);
       setReset(true);
-      setTimeout(() => navigate("/login"), 3000); // Redirect after 3 sec
+
     } catch (err) {
       toast.error(err.response?.data?.message || "Error resetting password");
+    } finally{
+      setLoading(false)
     }
   };
 
@@ -28,6 +32,7 @@ const ResetPassword = () => {
       {reset ? (
         <div className="text-center mt-10 text-green-600 font-medium">
           Password has been reset successfully!
+          <p>Please login with your new password , Thank you </p>
         </div>
       ) : (
         <div className="max-w-sm mx-auto mt-10">
@@ -41,9 +46,17 @@ const ResetPassword = () => {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
-            <button className="w-full bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 transition">
-              Reset Password
-            </button>
+            <button
+            type="submit"
+            disabled={loading}
+            className={`w-full py-2 text-white font-semibold rounded-lg transition duration-300 ${
+              loading
+                ? "bg-blue-400 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700"
+            }`}
+          >
+            Reset Password
+          </button>
           </form>
         </div>
       )}

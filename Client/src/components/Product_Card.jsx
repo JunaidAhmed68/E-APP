@@ -8,7 +8,8 @@ function ProductCard({ product }) {
 
   return (
     <Link to={`/products/${product._id}`}>
-
+   
+   
     <div className="border p-4   hover:outline-2 hover:outline-orange-400  " >
       {isImageLoading && (
         <div className="flex justify-center items-center h-40">
