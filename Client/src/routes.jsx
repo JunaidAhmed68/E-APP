@@ -29,7 +29,7 @@ function App_Routes() {
         <Route path="products/:id" element={<ProductDetail />} />
         <Route path="contact" element={<Contact />} />
         <Route path="forgotpassword" element={<ForgotPassword />} />
-        <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route path="reset-password/:token" element={<ResetPassword />} />
         <Route path="sell-on-app" element={<SellOnApp />} />
         <Route path="checkout" element={<Checkout />} />
         <Route path="orders" element={<Orders />} />
