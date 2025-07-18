@@ -72,6 +72,7 @@ const Home = () => {
     ? categories
     : categories.slice(0, 4);
 
+    
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
