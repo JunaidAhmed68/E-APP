@@ -30,6 +30,7 @@ const loginSchema = Joi.object({
   password: Joi.string().min(6).required(),
 });
 
+
 // SIGNUP 
 route.post("/signup", async (req, res) => {
   try {
