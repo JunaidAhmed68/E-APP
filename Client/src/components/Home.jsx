@@ -1,7 +1,6 @@
 // src/pages/Home.jsx
 import React, { useContext, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import { useCart } from "../context/CartContext";
 import HeroSlider from "../components/HeroSlider";
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/solid";
@@ -15,7 +14,7 @@ import axios from "axios"; // ✅ Add this
 const Home = () => {
   const [categories, setCategories] = useState([]);
   const [showAllCategories, setShowAllCategories] = useState(false);
-  const { setCategorySelected, changeCategory } = useContext(ProductContext);
+  const { changeCategory } = useContext(ProductContext);
   const [featured, setFeatured] = useState([]);
   const { addToCart } = useCart();
   const { user } = useContext(AuthContext);
@@ -60,6 +59,7 @@ const Home = () => {
         const res = await axios.get(
           "https://e-app-delta.vercel.app/products/categories"
         );
+        
         setCategories(res.data || []);
       } catch (err) {
         console.error("Failed to fetch categories:", err);
@@ -99,9 +99,7 @@ const Home = () => {
 
         <div className="flex flex-wrap gap-3 justify-center">
           {visibleCategories.map(
-            (category, index) => (
-              console.log("Categories:", visibleCategories),
-              (
+            (category, index) => (              (
                 <span
                   key={index}
                   className="px-4 py-2 rounded-full cursor-pointer bg-gray-200 hover:bg-orange-500 hover:text-white transition"

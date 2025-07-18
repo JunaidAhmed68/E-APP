@@ -122,6 +122,8 @@ route.post("/login", async (req, res) => {
         age: user.age,
         _id: user._id,
         isEmailVerified: user.isEmailVerified,
+        orderAddress: user.orderAddress,
+        orderPhone: user.orderPhone,
       },
       token,
     });
@@ -132,24 +134,35 @@ route.post("/login", async (req, res) => {
 });
 
 //  GET LOGGED-IN USER
-route.get("/user", (req, res) => {
-  if (!req.headers.authorization) {
+route.get("/user", async (req, res) => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader) {
     return res.status(401).json({ error: true, message: "Token not provided!" });
   }
 
-  const token = req.headers.authorization.split(" ")[1];
+  const token = authHeader.split(" ")[1];
 
   try {
-    const decodedUser = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const user = await User.findById(decoded._id).select("-password"); // exclude password
+
+    if (!user) {
+      return res.status(404).json({ error: true, message: "User not found" });
+    }
+
     res.status(200).json({
       error: false,
       message: "User data fetched successfully!",
-      data: decodedUser,
+      data: user,
     });
   } catch (err) {
+    console.error("Token validation error:", err);
     res.status(401).json({ error: true, message: "Invalid token!" });
   }
 });
+
 
 //  FORGOT PASSWORD
 route.post("/forgot-password", async (req, res) => {

@@ -3,28 +3,43 @@ import Product from "../models/Product.js";
 
 const router = express.Router();
 // ✅ Get all products or only featured
+// GET /api/products?featured=true&page=1&limit=10
 router.get("/", async (req, res) => {
   try {
-    const { featured } = req.query;
-
+    const { featured, page = 1, limit = 12 } = req.query;
     const filter = featured === "true" ? { featured: true } : {};
 
-    const products = await Product.find(filter);
-    res.json({ products });
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const total = await Product.countDocuments(filter);
+    const products = await Product.find(filter).skip(skip).limit(parseInt(limit));
+
+    res.json({
+      products,
+      currentPage: parseInt(page),
+      totalPages: Math.ceil(total / parseInt(limit)),
+      totalProducts: total,
+    });
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch products" });
   }
 });
 
+
 // ✅ Get all categories
 router.get("/categories", async (req, res) => {
   try {
-    const categories = await Product.distinct("category");
+    const Categories = await Product.distinct("category");
+
+    // Convert to lowercase and remove duplicates
+    const categories = [...new Set(Categories.map(cat => cat.toLowerCase().trim()))];
+
     res.json(categories);
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch categories" });
   }
 });
+
 
 // ✅ Get products by category (Fix applied here!)
 router.get("/category/:category", async (req, res) => {

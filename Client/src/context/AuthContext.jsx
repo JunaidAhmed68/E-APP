@@ -7,6 +7,7 @@ export const AuthContext = createContext();
 const AuthContextProvider = ({ children }) => {
   const [user, setUser] = useState(undefined);
   const [loading, setLoading] = useState(true); // loading flag
+  const [relod,setRelod]= useState(true);
 
   const token = Cookies.get("token");
 
@@ -20,7 +21,6 @@ useEffect(() => {
           },
         });
         setUser(response.data.data);
-        console.log("User data fetched:", response.data);
       } else {
         setUser(null); // token not present
       }
@@ -34,7 +34,7 @@ useEffect(() => {
   };
 
   fetchUser();
-}, []);
+}, [relod]);
 
   
 
@@ -46,7 +46,7 @@ useEffect(() => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, setUser, logout , loading }}>
+    <AuthContext.Provider value={{ user, setUser, logout , loading ,relod, setRelod}}>
       {children}
     </AuthContext.Provider>
   );

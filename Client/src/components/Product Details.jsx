@@ -9,6 +9,8 @@ import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 import { AuthContext } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import { toast } from "react-toastify";
+import RelatedProducts from "./RelatedProducts";
+import { ProductContext } from "../context/ProductContext";
 
 function ProductDetail() {
   const { id } = useParams();
@@ -19,6 +21,7 @@ function ProductDetail() {
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const [quantity, setQuantity] = useState(1);
+  const { changeCategory } = useContext(ProductContext);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -82,13 +85,23 @@ function ProductDetail() {
           </p>
 
           <div className="space-y-1 text-gray-600 text-sm">
-            <p><span className="font-medium text-black">Category:</span> {product.category}</p>
-            <p><span className="font-medium text-black">Brand:</span> {product.brand}</p>
-            <p><span className="font-medium text-black">Rating:</span> {product.rating} ⭐</p>
-            <p><span className="font-medium text-black">In Stock:</span> {product.stock} items</p>
+            <p>
+              <span className="font-medium text-black">Category:</span>{" "}
+              {product.category}
+            </p>
+            <p>
+              <span className="font-medium text-black">Brand:</span>{" "}
+              {product.brand}
+            </p>
+            <p>
+              <span className="font-medium text-black">Rating:</span>{" "}
+              {product.rating} ⭐
+            </p>
+            <p>
+              <span className="font-medium text-black">In Stock:</span>{" "}
+              {product.stock} items
+            </p>
           </div>
-
-
 
           <div>
             <span>Quantity:</span>
@@ -139,7 +152,6 @@ function ProductDetail() {
           </div>
         </div>
       </div>
-
       {/* Gallery Images */}
       <div className="mt-10">
         <h3 className="text-2xl font-semibold mb-4">Gallery</h3>
@@ -158,7 +170,6 @@ function ProductDetail() {
           ))}
         </div>
       </div>
-
       {/* Image Slider Modal */}
       <ProductImageSlider
         images={product.images}
@@ -166,6 +177,27 @@ function ProductDetail() {
         open={sliderOpen}
         onClose={() => setSliderOpen(false)}
       />
+      <div className="mt-16">
+        <h3 className="text-2xl font-semibold mb-4">
+          More items from{" "}
+          <span className="text-orange-500">{product.category}</span>
+        </h3>
+
+        <RelatedProducts currentId={product._id} category={product.category} />
+
+        <div className="flex justify-center mt-6">
+          <Button
+            variant="outlined"
+            color="primary"
+            onClick={() => {
+              navigate(`/products`);
+              changeCategory(product.category);
+            }}
+          >
+            View More in {product.category}
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

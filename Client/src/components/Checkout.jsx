@@ -3,19 +3,23 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 const Checkout = () => {
-  const { user } = useContext(AuthContext);
+  const { user, setRelod , relod } = useContext(AuthContext);
   const { cartItems, clearCart } = useCart();
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [address, setAddress] = useState("");
+
   const navigate = useNavigate();
   const location = useLocation();
   const buyNowItem = location.state?.buyNowItem || null;
-  const [address, setAddress] = useState("");
+
   useEffect(() => {
     if (!user) navigate("/login");
+    if (user?.orderAddress) setAddress(user.orderAddress);
+    if (user?.orderPhone) setPhoneNumber(user.orderPhone);
   }, [user, navigate]);
-  console.log("✅ Buy Now Item:", buyNowItem);
-  console.log("🛒 Cart Items:", cartItems);
 
   const itemsToCheckout = buyNowItem ? [buyNowItem] : cartItems;
 
@@ -26,47 +30,41 @@ const Checkout = () => {
 
   const handlePlaceOrder = async () => {
     if (!address.trim()) return alert("Please enter your address");
+    if (!/^03[0-9]{9}$/.test(phoneNumber)) {
+      return alert(
+        "Invalid phone number format (Must start with 03 and be 11 digits)"
+      );
+    }
 
-     itemsToCheckout.map(
-      (item) => ({
-        _id: item._id,
-        title: item.title,
-        price: item.price,
-        quantity: item.quantity || 1,
-        thumbnail: item.thumbnail,
-        sellerId: item.sellerId,
-      })
-    );
-
-    const total = itemsToCheckout.reduce(
-      (sum, item) => sum + item.price * item.quantity,
-      0
-    );
-
-    const order = {
+    const preparedOrder = {
       userId: user._id,
-      items: itemsToCheckout,
+      phoneNumber,
       total,
       address,
+      items: itemsToCheckout.map((item) => ({
+        productId: item._id,
+        title: item.title,
+        price: item.price,
+        quantity: item.quantity,
+        thumbnail: item.thumbnail,
+      })),
     };
 
-    console.log("📦 Order sending:", order);
-
     try {
-      const res = await axios.post(
-        "https://e-app-delta.vercel.app/orders",
-        order
-      );
+      const res = await axios.post("https://e-app-delta.vercel.app/orders", preparedOrder);
 
       if (res.status === 201) {
-        if (!buyNowItem) clearCart();
+        if (!buyNowItem) clearCart(); // Clear cart only for cart-based orders
+        toast.success("Order placed sucessfully")
         navigate("/orders");
-      } else {
-        alert("Something went wrong while placing order.");
+
       }
     } catch (error) {
       console.error("Order submission error:", error);
-      alert(error.response?.data?.message || "Server error");
+      toast.error(error.response?.data?.message || "Server error");
+    }
+    finally{
+      setRelod(!relod)
     }
   };
 
@@ -85,19 +83,32 @@ const Checkout = () => {
         />
       </div>
 
-      <div>
+      <div className="mb-4">
+        <label className="block font-medium mb-1">Phone Number</label>
+        <input
+          type="tel"
+          placeholder="e.g., 03XXXXXXXXX"
+          className="w-full p-3 border rounded"
+          value={phoneNumber}
+          onChange={(e) => setPhoneNumber(e.target.value)}
+          required
+        />
+      </div>
+
+      <div className="mb-4">
         <h4 className="text-xl font-semibold mb-1">Payment Method</h4>
-        <p className="text-gray-600 mb-2">
+        <p className="text-gray-600">
           Currently, only cash on delivery is supported.
         </p>
       </div>
+
       <div className="mb-4">
         <h4 className="text-xl font-semibold mb-2">Order Summary</h4>
-        <ul>
+        <ul className="text-gray-700">
           {itemsToCheckout.map((item) => (
             <li key={item._id}>
               {item.title} × {item.quantity} = $
-              {(item.quantity * item.price).toFixed(2)}
+              {(item.price * item.quantity).toFixed(2)}
             </li>
           ))}
         </ul>

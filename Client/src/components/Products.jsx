@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
+import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/solid";
 import { ProductContext } from "../context/ProductContext.jsx";
 import Skeleton from "react-loading-skeleton";
@@ -30,6 +31,9 @@ function Products() {
   const [loadingCategories, setLoadingCategories] = useState(true);
   const { categorySelected, setCategorySelected } = useContext(ProductContext);
   const loading = loadingProducts || loadingCategories;
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const PRODUCTS_PER_PAGE = 12;
 
   const [anchorEl, setAnchorEl] = useState(null);
   const [filterOptions, setFilterOptions] = useState({
@@ -45,11 +49,15 @@ function Products() {
     setFilterOptions((prev) => ({ ...prev, [option]: !prev[option] }));
   };
 
-  async function justFetchOneTime() {
+  async function justFetchOneTime(page = 1) {
     try {
-      const res = await axios.get("https://e-app-delta.vercel.app/products");
+      const res = await axios.get(
+        `http://localhost:3000/products?page=${page}&limit=${PRODUCTS_PER_PAGE}`
+      );
       setSavedProducts(res.data.products);
       if (categorySelected === "All") setProducts(res.data.products);
+      setTotalPages(res.data.totalPages);
+      setCurrentPage(res.data.currentPage);
     } catch (error) {
       console.error("Error fetching products:", error);
     } finally {
@@ -74,11 +82,16 @@ function Products() {
 
   async function fetchProductsByCategory(category) {
     try {
-      const res = await axios.get(`https://e-app-delta.vercel.app/products/category/${category}`);
+      const res = await axios.get(
+        `http://localhost:3000/products/category/${category}`
+      );
       setProducts(res.data.products);
       setCategorySelected(category);
     } catch (error) {
-      console.error(`Error fetching products for category "${category}"`, error);
+      console.error(
+        `Error fetching products for category "${category}"`,
+        error
+      );
     }
   }
 
@@ -88,17 +101,19 @@ function Products() {
   }, [categorySelected]);
 
   useEffect(() => {
-    justFetchOneTime();
+    justFetchOneTime(currentPage);
     fetchAllCategories();
-  }, []);
+  }, [currentPage]);
 
   useEffect(() => {
     const search = productSearch.trim().toLowerCase();
 
     const timeout = setTimeout(() => {
       if (search === "") {
-        setCategorySelected("All");
-        setProducts(savedProducts);
+        if (categorySelected === "All") setProducts(savedProducts);
+        else {
+          fetchProductsByCategory(categorySelected);
+        }
         return;
       }
 
@@ -128,9 +143,9 @@ function Products() {
         );
       }
 
-      const uniqueFiltered = Array.from(new Set(filtered.map((p) => p._id))).map(
-        (id) => filtered.find((p) => p._id === id)
-      );
+      const uniqueFiltered = Array.from(
+        new Set(filtered.map((p) => p._id))
+      ).map((id) => filtered.find((p) => p._id === id));
 
       setProducts(uniqueFiltered);
     }, 500);
@@ -173,11 +188,14 @@ function Products() {
                 whileTap={{ scale: 0.95 }}
                 whileHover={{ scale: 1.05 }}
                 className={`px-4 py-2 rounded-full cursor-pointer transition duration-200 hover:outline-2 hover:outline-orange-400 ${
-                  category === categorySelected ? "bg-orange-400 text-white" : "bg-gray-200"
+                  category === categorySelected
+                    ? "bg-orange-400 text-white"
+                    : "bg-gray-200"
                 }`}
                 onClick={() => {
                   setProductSearch("");
                   setCategorySelected(category);
+                  setCurrentPage(1);
                 }}
               >
                 {category}
@@ -186,7 +204,9 @@ function Products() {
           </motion.div>
 
           <div className="text-right mt-2">
-            <IconButton onClick={() => setShowAllCategories(!showAllCategories)}>
+            <IconButton
+              onClick={() => setShowAllCategories(!showAllCategories)}
+            >
               {showAllCategories ? (
                 <ChevronUpIcon className="h-5 w-5 text-blue-500" />
               ) : (
@@ -246,13 +266,15 @@ function Products() {
           </Menu>
         </div>
 
-        <h2 className="text-3xl mb-4 capitalize">{categorySelected} products</h2>
+        <h2 className="text-3xl mb-4 capitalize">
+          {categorySelected} products
+        </h2>
 
         <motion.div
           layout
           className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 min-h-[300px]"
         >
-          {products.length ==0  ? (
+          {products.length == 0 ? (
             <motion.div
               className="col-span-full flex items-center justify-center h-24"
               initial={{ opacity: 0 }}
@@ -278,6 +300,53 @@ function Products() {
             </AnimatePresence>
           )}
         </motion.div>
+        <div className="flex justify-center mt-8">
+          <button
+            onClick={() => {
+              if (currentPage > 1 && !loading) {
+                setCurrentPage(currentPage - 1);
+                justFetchOneTime(currentPage - 1);
+              }
+            }}
+            disabled={currentPage === 1 || loading}
+            className="px-3 py-2 mx-1 rounded bg-gray-300 disabled:opacity-50"
+          >
+            Previous
+          </button>
+
+          {Array.from({ length: totalPages }).map((_, index) => (
+            <button
+              key={index}
+              onClick={() => {
+                if (!loading) {
+                  setCurrentPage(index + 1);
+                  justFetchOneTime(index + 1);
+                }
+              }}
+              disabled={loading}
+              className={`px-4 py-2 mx-1 rounded transition-colors duration-200 ${
+                currentPage === index + 1
+                  ? "bg-orange-400 text-white"
+                  : "bg-gray-200 hover:bg-gray-300"
+              }`}
+            >
+              {index + 1}
+            </button>
+          ))}
+
+          <button
+            onClick={() => {
+              if (currentPage < totalPages && !loading) {
+                setCurrentPage(currentPage + 1);
+                justFetchOneTime(currentPage + 1);
+              }
+            }}
+            disabled={currentPage === totalPages || loading}
+            className="px-3 py-2 mx-1 rounded bg-gray-300 disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
       </div>
     </div>
   );
