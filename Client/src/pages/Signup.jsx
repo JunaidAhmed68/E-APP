@@ -4,7 +4,7 @@ import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import axios from "axios";
 import { NavLink, useNavigate } from "react-router-dom";
-import EmailConfirmationModal from "../components/EmailConfirmationModal";
+import EmailConfirmationModal from "./EmailConfirmationModal.jsx";
 import { toast } from "react-toastify";
 
 const schema = yup.object().shape({
