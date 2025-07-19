@@ -85,7 +85,7 @@ const HeroSlider = () => {
                 <button
                   onClick={() => handleBuyNow(product)}
                   className="bg-orange-500 hover:bg-orange-600 px-4 py-2 rounded font-medium"
-                >
+                >               
                   Buy Now
                 </button>
               </div>

@@ -57,13 +57,7 @@ const EmailConfirmationModal = ({ email, onVerified, onClose }) => {
             {loading ? "Verifying..." : "Verify"}
           </button>
 
-          {/* <button
-            onClick={handleVerify}
-            disabled={loading}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            {loading ? "Verifying..." : "Verify"}
-          </button> */}
+          
         </div>
       </div>
     </div>

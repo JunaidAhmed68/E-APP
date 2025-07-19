@@ -1,12 +1,12 @@
 // src/pages/Home.jsx
 import React, { useContext, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useCart } from "../context/CartContext";
-import HeroSlider from "../components/HeroSlider";
+import { useCart } from "../context/CartContext.jsx";
+import HeroSlider from "../components/HeroSlider.jsx";
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/solid";
 import { IconButton } from "@mui/material";
 import { ProductContext } from "../context/ProductContext.jsx";
-import { AuthContext } from "../context/AuthContext";
+import { AuthContext } from "../context/AuthContext.jsx";
 import { toast } from "react-toastify";
 import { FaInstagram, FaLinkedin, FaGithub, FaPhone } from "react-icons/fa";
 import axios from "axios"; // ✅ Add this
@@ -72,7 +72,7 @@ const Home = () => {
     ? categories
     : categories.slice(0, 4);
 
-    
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}

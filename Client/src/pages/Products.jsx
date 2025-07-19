@@ -1,7 +1,6 @@
 import { useState, useEffect, useContext } from "react";
 import axios from "axios";
-import Loader from "./Loader.jsx";
-import ProductCard from "./Product_Card.jsx";
+import ProductCard from "../components/Product_Card.jsx";
 import {
   TextField,
   InputAdornment,
@@ -13,8 +12,9 @@ import {
   FormControlLabel,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import FilterListIcon from "@mui/icons-material/FilterList";
-import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/solid";
 import { ProductContext } from "../context/ProductContext.jsx";
 import Skeleton from "react-loading-skeleton";
@@ -52,7 +52,7 @@ function Products() {
   async function justFetchOneTime(page = 1) {
     try {
       const res = await axios.get(
-        `http://localhost:3000/products?page=${page}&limit=${PRODUCTS_PER_PAGE}`
+        `https://e-app-delta.vercel.app/products?page=${page}&limit=${PRODUCTS_PER_PAGE}`
       );
       setSavedProducts(res.data.products);
       if (categorySelected === "All") setProducts(res.data.products);
@@ -83,7 +83,7 @@ function Products() {
   async function fetchProductsByCategory(category) {
     try {
       const res = await axios.get(
-        `http://localhost:3000/products/category/${category}`
+        `https://e-app-delta.vercel.app/products/category/${category}`
       );
       setProducts(res.data.products);
       setCategorySelected(category);
@@ -309,9 +309,9 @@ function Products() {
               }
             }}
             disabled={currentPage === 1 || loading}
-            className="px-3 py-2 mx-1 rounded bg-gray-300 disabled:opacity-50"
+            className="px-3 py-2 mx-1 rounded bg-gray-300 flex items-center gap-1 disabled:opacity-50"
           >
-            Previous
+            <ArrowBackIcon fontSize="small" />
           </button>
 
           {Array.from({ length: totalPages }).map((_, index) => (
@@ -344,7 +344,7 @@ function Products() {
             disabled={currentPage === totalPages || loading}
             className="px-3 py-2 mx-1 rounded bg-gray-300 disabled:opacity-50"
           >
-            Next
+            <ArrowForwardIcon fontSize="small" />
           </button>
         </div>
       </div>

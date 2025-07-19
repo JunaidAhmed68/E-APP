@@ -48,6 +48,7 @@ export const CartProvider = ({ children, user }) => {
     });
   };
 
+
   // ➖ Decrease quantity by 1 (remove if 0)
   const decreaseFromCart = (id) => {
     setCartItems((prev) =>

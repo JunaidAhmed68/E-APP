@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { AuthContext } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
-import Loader from "./Loader";
+import Loader from "../components/Loader";
 
 const MyCart = () => {
   const { user, loading } = useContext(AuthContext);
@@ -96,7 +96,7 @@ const MyCart = () => {
                     </motion.span>
                     <button
                       className="px-3 py-1 rounded-full bg-gray-200 hover:bg-gray-300 transition"
-                      onClick={() => addToCart(item)}
+                      onClick={() => addToCart({...item,quantity:1})}
                     >
                       +
                     </button>

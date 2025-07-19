@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import Loader from "./Loader";
 import ProductCard from "./Product_Card"; // or your reusable product card
-import { ProductContext } from "../context/ProductContext.jsx";
 
 function RelatedProducts({ category, currentId }) {
   const [related, setRelated] = useState([]);

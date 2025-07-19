@@ -9,7 +9,7 @@ import {
 import { AuthContext } from "../context/AuthContext"; // Update this path if needed
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import Loader from "./Loader";
+import Loader from "../components/Loader";
 import { toast } from "react-toastify";
 
 const cloudName = "dbqf9udic"; // ✅ Replace with your actual Cloudinary name
